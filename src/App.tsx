@@ -1,5 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useEffect } from "react";
+import {initGoogleAnalytics,logPageview} from './analytics.ts'
+
 
 // Page
 import Page from "./components/Page";
@@ -28,6 +30,10 @@ import MenuContextProvider from "./contexts/MobileMenuContext.tsx";
 const queryClient = new QueryClient();
 
 function App() {
+  useEffect(() => {
+    initGoogleAnalytics();
+    logPageview();
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <MenuContextProvider>
@@ -50,7 +56,6 @@ function App() {
           <Footer />
         </Page>
       </MenuContextProvider>
-      <ReactQueryDevtools />
     </QueryClientProvider>
   );
 }

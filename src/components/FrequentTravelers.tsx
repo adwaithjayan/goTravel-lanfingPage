@@ -4,6 +4,7 @@ import { useFormAndValidation } from "../hooks/useFormAndValidation";
 import Checkmark from "./Icons/Checkmark";
 import useInsertLead from "../hooks/useInsertLead";
 import { FORM_STATE_DURATION } from "../utils/constants";
+import { logCustomEvent } from "../analytics";
 
 interface FormState {
   currentState: "idle" | "pending" | "success" | "error";
@@ -39,14 +40,15 @@ export default function FrequentTravelers() {
   async function handleSubmit(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     if (isChecked && isValid) {
+      // we are now entering  a pending..
       setFormState({ currentState: "pending", errorMessage: null });
 
+      // lets attempt to insert lead data
       mutation.mutate({
         createdAt: Date.now(),
         fullName: values.fullName,
         emailAddress: values.emailAddress,
       });
-      console.log(values+"whatyddhhhihi")
     }
   }
 
@@ -55,10 +57,12 @@ export default function FrequentTravelers() {
     setIsChecked(false);
     setFormState({ currentState: "success", errorMessage: null });
 
+    // Tell the browser to run this function after 1250 ms, reset form state
     setTimeout(
       () => setFormState({ currentState: "idle", errorMessage: null }),
       FORM_STATE_DURATION,
     );
+    logFormSubmit("null");
   }
 
   function handleError(error: Error) {
@@ -68,6 +72,18 @@ export default function FrequentTravelers() {
       () => setFormState({ currentState: "idle", errorMessage: null }),
       FORM_STATE_DURATION,
     );
+    logFormSubmit(`Form submission error with message - ${error.message}`);
+  }
+
+  function logFormSubmit(error: string = "") {
+    logCustomEvent({
+      category: "user_engagement",
+      action: "form_submit",
+      eventName: "frequent_travelers_form_submit",
+      customProps: {
+        errorMessage: error,
+      },
+    });
   }
 
   return (
